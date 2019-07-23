@@ -1,20 +1,18 @@
 package peet.learn.basiccalculator
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
+import kotlinx.android.synthetic.main.activity_main.*
+
+private const val STATE_PENDING_OPERATION = "PendingOperation"
+private const val STATE_FIRST_OPERAND = "FirstOperand"
+private const val STATE_OPERAND_STORED = "FirstOperand Stored"
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var result: EditText
-    private lateinit var newNumber: EditText
-    private val displayOperation by lazy(LazyThreadSafetyMode.NONE) { findViewById<TextView>(R.id.operation) }
-
     private var firstOperand: Double? = null
-    private var secondOperand: Double = 0.0
     private var pendingOperation = "="
 
 
@@ -22,43 +20,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        result = findViewById(R.id.result)
-        newNumber = findViewById(R.id.newNumber)
-
-        // inputs
-        val button0: Button = findViewById(R.id.button0)
-        val button1: Button = findViewById(R.id.button1)
-        val button2: Button = findViewById(R.id.button2)
-        val button3: Button = findViewById(R.id.button3)
-        val button4: Button = findViewById(R.id.button4)
-        val button5: Button = findViewById(R.id.button5)
-        val button6: Button = findViewById(R.id.button6)
-        val button7: Button = findViewById(R.id.button7)
-        val button8: Button = findViewById(R.id.button8)
-        val button9: Button = findViewById(R.id.button9)
-        val buttonDot: Button = findViewById(R.id.buttonDot)
-
-        // operations
-        val buttonEquals: Button = findViewById(R.id.buttonEquals)
-        val buttonDivide: Button = findViewById(R.id.buttonDivide)
-        val buttonMultiply: Button = findViewById(R.id.buttonMultiply)
-        val buttonMinus: Button = findViewById(R.id.buttonMinus)
-        val buttonPlus: Button = findViewById(R.id.buttonPlus)
-
         val inputListener = View.OnClickListener { value ->
             val button = value as Button
             newNumber.append(button.text)
         }
 
         val operationListener = View.OnClickListener { value ->
-            val operation = (value as Button).text.toString()
-            val operand = newNumber.text.toString()
-            if (operand.isNotEmpty()) {
-                performOperation(operand, operation)
+            val op = (value as Button).text.toString()
+
+            try {
+                val operand = newNumber.text.toString().toDouble()
+                performOperation(operand, op)
+            } catch (error: NumberFormatException) {
+                newNumber.setText("")
             }
 
-            pendingOperation = operation
-            displayOperation.text = pendingOperation
+            pendingOperation = op
+            operation.text = pendingOperation
+        }
+
+        val inputSignListener = View.OnClickListener { view ->
+            val value = newNumber.text.toString()
+            if (value.isEmpty()) {
+                newNumber.setText("-")
+            } else {
+                try {
+                  var doubleValue = value.toDouble()
+                  doubleValue *= -1
+                    newNumber.setText(doubleValue.toString())
+                } catch (e: NumberFormatException) {
+                    newNumber.setText("")
+
+                }
+            }
         }
 
         button0.setOnClickListener(inputListener)
@@ -81,7 +75,55 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun performOperation(value: String, operation: String) {
-        displayOperation.text = operation
+    private fun performOperation(value: Double, operation: String) {
+        if (firstOperand == null) {
+            firstOperand = value
+        } else {
+
+            if (pendingOperation == "=") {
+                pendingOperation = operation
+            }
+
+            when (pendingOperation) {
+                "=" -> firstOperand = value
+                "/" -> firstOperand = if (value == 0.0) {
+                    Double.NaN // handle division by 0
+                } else {
+                    firstOperand!! / value
+                }
+                "*" -> firstOperand = firstOperand!! * value
+                "-" -> firstOperand = firstOperand!! - value
+                "+" -> firstOperand = firstOperand!! + value
+            }
+        }
+
+
+        result.setText(firstOperand.toString())
+        newNumber.setText("")
+        println("\nthe value is $value")
+        println("\nthe first operand is $firstOperand")
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        if (firstOperand != null) {
+            outState.putDouble(STATE_FIRST_OPERAND, firstOperand!!)
+            outState.putBoolean(STATE_OPERAND_STORED, true)
+        }
+        outState.putString(STATE_PENDING_OPERATION, pendingOperation)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+
+        if (savedInstanceState.getBoolean(STATE_OPERAND_STORED, false)) {
+            firstOperand = savedInstanceState.getDouble(STATE_FIRST_OPERAND)
+        } else {
+            firstOperand = null
+        }
+
+        pendingOperation = savedInstanceState.getString(STATE_PENDING_OPERATION)
+        operation.text = pendingOperation
     }
 }
