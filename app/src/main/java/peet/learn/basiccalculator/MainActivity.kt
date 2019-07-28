@@ -47,12 +47,17 @@ class MainActivity : AppCompatActivity() {
                 try {
                   var doubleValue = value.toDouble()
                   doubleValue *= -1
-                    newNumber.setText(doubleValue.toString())
+                  newNumber.setText(doubleValue.toString())
                 } catch (e: NumberFormatException) {
                     newNumber.setText("")
 
                 }
             }
+        }
+
+        val clearCalcListener = View.OnClickListener { view ->
+            firstOperand = null
+            pendingOperation = "="
         }
 
         button0.setOnClickListener(inputListener)
@@ -72,6 +77,8 @@ class MainActivity : AppCompatActivity() {
         buttonMultiply.setOnClickListener(operationListener)
         buttonMinus.setOnClickListener(operationListener)
         buttonPlus.setOnClickListener(operationListener)
+        buttonNeg.setOnClickListener(inputSignListener)
+        buttonClear.setOnClickListener(clearCalcListener)
 
     }
 

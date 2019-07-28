@@ -6,6 +6,13 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MainActivity">
+    <Button
+            android:text="C"
+            android:layout_width="48dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/buttonClear"
+            app:layout_constraintStart_toEndOf="@+id/buttonMultiply"
+            android:layout_marginStart="8dp" app:layout_constraintBaseline_toBaselineOf="@+id/buttonMultiply"/>
     <EditText
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -160,5 +167,5 @@
     <android.support.constraint.Guideline android:layout_width="wrap_content" android:layout_height="wrap_content"
                                           android:id="@+id/guideline"
                                           android:orientation="vertical"
-                                          app:layout_constraintGuide_percent="0.5"/>
+                                          app:layout_constraintGuide_begin="342dp"/>
 </android.support.constraint.ConstraintLayout>
